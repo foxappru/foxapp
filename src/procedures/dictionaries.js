@@ -69,43 +69,43 @@ export async function renderDictionaries(
     button.textContent = dict.name;
 
     // auto-load specific dictionary
-    if (
-      dict.url === "https://raw.githubusercontent.com/foxappru/foxapp-data/main/english-french.txt"
-    ) {
-      fetchDictionaryOffline(dict.url).then((words) => {
-        state.activeWords.length = 0;
-        state.activeWords.push(...words);
-        state.selectedDictionaryName = dict.name;
+    // if (
+    //   dict.url === "https://raw.githubusercontent.com/foxappru/foxapp-data/main/english-french.txt"
+    // ) {
+    //   fetchDictionaryOffline(dict.url).then((words) => {
+    //     state.activeWords.length = 0;
+    //     state.activeWords.push(...words);
+    //     state.selectedDictionaryName = dict.name;
 
-        startScreen.style.opacity = 0;
-        startScreen.style.pointerEvents = "none";
-        state.isStarted = true;
+    //     startScreen.style.opacity = 0;
+    //     startScreen.style.pointerEvents = "none";
+    //     state.isStarted = true;
 
-        spawnWave();
+    //     spawnWave();
 
-        if (!state.loopRunning) {
-          state.loopRunning = true;
-          loop();
-        }
-      });
-    }
+    //     if (!state.loopRunning) {
+    //       state.loopRunning = true;
+    //       loop();
+    //     }
+    //   });
+    // }
 
     // Uncomment to enable other dictionary buttons
-    // button.addEventListener("click", async () => {
-    //   state.activeWords.length = 0;
-    //   state.activeWords.push(...await fetchDictionaryOffline(dict.url));
-    //   state.selectedDictionaryName = dict.name;
-    //
-    //   startScreen.style.opacity = 0;
-    //   startScreen.style.pointerEvents = "none";
-    //   state.isStarted = true;
-    //
-    //   spawnWave();
-    //   if (!state.loopRunning) {
-    //     state.loopRunning = true;
-    //     loop();
-    //   }
-    // });
+    button.addEventListener("click", async () => {
+      state.activeWords.length = 0;
+      state.activeWords.push(...await fetchDictionaryOffline(dict.url));
+      state.selectedDictionaryName = dict.name;
+    
+      startScreen.style.opacity = 0;
+      startScreen.style.pointerEvents = "none";
+      state.isStarted = true;
+    
+      spawnWave();
+      if (!state.loopRunning) {
+        state.loopRunning = true;
+        loop();
+      }
+    });
 
     dictList.appendChild(button);
   });
