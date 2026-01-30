@@ -65,7 +65,7 @@ export function updateGuys(
       }
       // ================= THROW ROCK =================
       if (g.heldRock && !g.throwCooldown) {
-        if (Math.random() < 0.001) { // tweak probability
+        if (Math.random() < 0.005) { // tweak probability
           g.throwCooldown = Math.floor(100 + Math.random() * 50); // frames before next throw
           rocks.push({
             x: g.x + 16,
