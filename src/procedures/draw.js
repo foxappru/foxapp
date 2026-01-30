@@ -45,15 +45,16 @@ export function drawTopInfo(ctx, repeatedCount, waveNumber) {
   ctx.fillStyle = "#cfe3ff";
   ctx.textAlign = "left";
   ctx.textBaseline = "top";
-  ctx.fillText(`Words repeated: ${repeatedCount}`, 16, 12);
+  ctx.fillText(`Words repeated: ${repeatedCount.value}`, 16, 12);
   ctx.fillText(`Wave: ${waveNumber}`, 16, 32);
 }
 
-export function drawGameOver(ctx, canvas, canvasLogicalWidth, canvasLogicalHeight) {
+export function drawGameOver(ctx, canvas, canvasLogicalWidth, canvasLogicalHeight, repeatedCount, waveNumber) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = "#f7a6a6";
   setFont(ctx, 16, true);
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText("GAME OVER", canvasLogicalWidth / 2, canvasLogicalHeight / 2);
+  drawTopInfo(ctx, repeatedCount, waveNumber);
 }

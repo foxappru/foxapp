@@ -12,51 +12,33 @@ export class Target {
     this.h = 16 + 18;
     this.dead = false;
     this.playEffect = playEffect;
+
+    this.isSpecial = false;
+    this.specialType = null;
   }
 
-  update({ wall, canvasLogicalHeight, livesRef }) {
-    // wall collision
-    if (wall) {
-      const wallTop = wall.y - wall.h / 2;
-      const wallBottom = wall.y + wall.h / 2;
-      const wallLeft = wall.x - wall.w / 2;
-      const wallRight = wall.x + wall.w / 2;
+  makeRock() {
+    this.isSpecial = true;
+    this.specialType = "ROCK";
+    this.text = "ROCK";
+  }
 
-      const targetTop = this.y - this.h / 2;
-      const targetBottom = this.y + this.h / 2;
-      const targetLeft = this.x - this.w / 2;
-      const targetRight = this.x + this.w / 2;
-
-      if (
-        targetRight >= wallLeft &&
-        targetLeft <= wallRight &&
-        targetBottom >= wallTop &&
-        targetTop <= wallBottom
-      ) {
-        this.vy = 0;
-        this.y = wallTop - this.h / 2;
-      }
-    }
-
-    if (!wall && this.vy === 0) this.vy = 0.2;
-
+  update(canvasLogicalHeight) {
     this.y += this.vy;
 
     // // fell below canvas
-    // if (this.y - this.h / 2 > canvasLogicalHeight) {
-    //   livesRef.value--;
-    //   this.dead = true;
-    //   if (livesRef.value === 0) {
-    //     this.playEffect("lose");
-    //   }
-    // }
+    if (this.y - this.h / 2 > canvasLogicalHeight) {
+      this.dead = true;
+    }
   }
 
   draw(ctx) {
     setFont(ctx);
 
-    ctx.fillStyle = "#401f1fff";
-    ctx.strokeStyle = "rgba(255, 102, 117, 1)";
+    ctx.fillStyle = this.isSpecial ? "#909090" : "#401f1fff";
+    ctx.strokeStyle = this.isSpecial
+      ? "#b7b7b7"
+      : "rgba(255, 102, 117, 1)";
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.roundRect(this.x - this.w / 2, this.y - this.h / 2, this.w, this.h, 8);

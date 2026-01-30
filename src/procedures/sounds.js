@@ -29,7 +29,7 @@ export function playEffect(name) {
 export async function loadAllSounds() {
   await Promise.all([
     loadSound("shot", "assets/sounds/effects/shot.wav"),
-    loadSound("error", "assets/sounds/effects/error12.wav"),
+    loadSound("error", "assets/sounds/effects/error.wav"),
     loadSound("hit", "assets/sounds/effects/hit.wav"),
     loadSound("lose", "assets/sounds/effects/lose.wav"),
   ]);

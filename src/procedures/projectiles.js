@@ -1,6 +1,7 @@
 // procedures/projectiles.js
 
 import { playEffect } from "./sounds.js";
+import { pickGunWord, repeatedCount, rocks } from "../main.js";
 
 export let projectiles = [];
 
@@ -31,21 +32,54 @@ export function updateProjectiles(
         proj.y - 6 <= t.y + t.h / 2;
 
       if (hit) {
-        if (t.pair === proj.pair && t.text !== proj.word) {
+        projectiles.splice(p, 1);
+        if (t.isSpecial && t.specialType === "ROCK") {
+          rocks.push({
+            x: t.x,
+            y: t.y,
+            vy: 0,
+            radius: 6,
+            resting: false,
+          });
+
           targets.splice(i, 1);
+          if (!targets.length) spawnWave();
+          // projectiles.splice(p, 1);
           playEffect("hit");
+          pickGunWord();
+          break;
+        }
+
+        if (t.pair === proj.pair && t.text !== proj.word) {
+          repeatedCount.value++;
+          playEffect("hit");
+
+          if (Math.random() < 0.1) {
+            t.makeRock();
+          } else {
+            targets.splice(i, 1);
+          }
 
           const indexInGun = gunQueue.indexOf(t);
           if (indexInGun !== -1) {
+            if (indexInGun < gunWordIndexRef.value) {
+              gunWordIndexRef.value--;
+            }
             gunQueue.splice(indexInGun, 1);
-            if (gunWordIndexRef.value >= gunQueue.length) gunWordIndexRef.value = 0;
+
+            if (gunWordIndexRef.value < 0) {
+              gunWordIndexRef.value = 0;
+            }
+            if (gunWordIndexRef.value >= gunQueue.length) {
+              gunWordIndexRef.value = 0;
+            }
           }
+          pickGunWord();
 
         } else {
-          applyPunishment(t, spawnWord, activeWords);
+          applyPunishment(t, spawnWord, activeWords, targets);
         }
 
-        projectiles.splice(p, 1);
         if (!targets.length) spawnWave();
         break;
       }
@@ -62,18 +96,15 @@ export function updateProjectiles(
   }
 }
 
-function applyPunishment(t, spawnWord, activeWords) {
+function applyPunishment(t, spawnWord, activeWords, targets) {
   const punishment = Math.floor(Math.random() * 3);
   if (punishment === 0) t.vy += 0.15;
-  else if (punishment === 1) {
+  else if (punishment === 1 && targets.length < 8) {
     const count = Math.floor(Math.random() * 3) + 1;
     for (let k = 0; k < count; k++) {
       const pair = activeWords[Math.floor(Math.random() * activeWords.length)];
       spawnWord(pair);
     }
-  } 
-  // else {
-  //   livesRef.value--;
-  // }
+  }
   playEffect("error");
 }

@@ -1,10 +1,31 @@
-// procedures/dictionaries.js
+import { startGame } from "../main.js";
 
-export async function fetchDictionaryUrls(username) {
+function loadAllDictionaries() {
+  return JSON.parse(localStorage.getItem("foxappDictionaries")) || {};
+}
+
+function saveDictionary(name, words) {
+  const all = loadAllDictionaries();
+
+  all[name] = { name, words };
+
+  localStorage.setItem("foxappDictionaries", JSON.stringify(all));
+}
+
+export async function fetchDictionaries(username) {
+  const cached = JSON.parse(localStorage.getItem("foxappDictionaries")) || {};
+
+  if (!navigator.onLine) {
+    return Object.keys(cached).map((name) => ({
+      name,
+      url: null // no URL needed offline
+    }));
+  }
+
   try {
     const apiUrl = `https://api.github.com/repos/${username}/foxapp-data/contents`;
     const response = await fetch(apiUrl);
-    if (!response.ok) return [];
+    if (!response.ok) return Object.keys(cached).map((name) => ({ name, url: null }));
 
     const files = await response.json();
     return files
@@ -14,17 +35,29 @@ export async function fetchDictionaryUrls(username) {
         url: f.download_url,
       }));
   } catch {
-    return [];
+    return Object.keys(cached).map((name) => ({ name, url: null }));
   }
 }
 
-export async function fetchDictionary(url) {
+export async function fetchDictionary(name, url) {
+  const cache = JSON.parse(localStorage.getItem("foxappDictionaries")) || {};
+
+  // OFFLINE → return cached version
+  if (!navigator.onLine) {
+    return cache[name]?.words || [];
+  }
+
+  // ONLINE → fetch from network
   try {
     const response = await fetch(url);
-    if (!response.ok) return [];
+    if (!response.ok) {
+      // fallback to cache if fetch fails
+      return cache[name]?.words || [];
+    }
+
     const text = await response.text();
 
-    return text
+    const words = text
       .split("\n")
       .filter((line) => line.trim())
       .map((line) => {
@@ -33,30 +66,24 @@ export async function fetchDictionary(url) {
         return { word: parts[0], translation: parts[1] };
       })
       .filter(Boolean);
+
+    // save to cache
+    saveDictionary(name, words);
+
+    return words;
   } catch {
-    return [];
+    // network error → fallback to cache
+    return cache[name]?.words || [];
   }
 }
 
-export async function fetchDictionaryOffline(url) {
-  if (!navigator.onLine) {
-    const saved = localStorage.getItem("foxappDictionary");
-    if (saved) return JSON.parse(saved).words;
-    return [];
-  }
-  return fetchDictionary(url);
-}
 
 export async function renderDictionaries(
   username,
-  dictList,
-  startScreen,
-  spawnWave,
-  loop,
-  state
+  dictList
 ) {
   dictList.innerHTML = "<p>Loading...</p>";
-  const dictionaries = await fetchDictionaryUrls(username);
+  const dictionaries = await fetchDictionaries(username);
 
   if (!dictionaries.length) {
     dictList.innerHTML = "<p>No dictionaries found</p>";
@@ -68,46 +95,11 @@ export async function renderDictionaries(
     const button = document.createElement("button");
     button.textContent = dict.name;
 
-    // auto-load specific dictionary
-    // if (
-    //   dict.url === "https://raw.githubusercontent.com/foxappru/foxapp-data/main/english-french.txt"
-    // ) {
-    //   fetchDictionaryOffline(dict.url).then((words) => {
-    //     state.activeWords.length = 0;
-    //     state.activeWords.push(...words);
-    //     state.selectedDictionaryName = dict.name;
-
-    //     startScreen.style.opacity = 0;
-    //     startScreen.style.pointerEvents = "none";
-    //     state.isStarted = true;
-
-    //     spawnWave();
-
-    //     if (!state.loopRunning) {
-    //       state.loopRunning = true;
-    //       loop();
-    //     }
-    //   });
-    // }
-
-    // Uncomment to enable other dictionary buttons
     button.addEventListener("click", async () => {
-      state.activeWords.length = 0;
-      state.activeWords.push(...await fetchDictionaryOffline(dict.url));
-      state.selectedDictionaryName = dict.name;
-    
-      startScreen.style.opacity = 0;
-      startScreen.style.pointerEvents = "none";
-      state.isStarted = true;
-    
-      spawnWave();
-      if (!state.loopRunning) {
-        state.loopRunning = true;
-        loop();
-      }
+      const words = await fetchDictionary(dict.name, dict.url);
+      startGame(words);
     });
 
     dictList.appendChild(button);
   });
 }
-
