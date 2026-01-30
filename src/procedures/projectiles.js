@@ -54,7 +54,7 @@ export function updateProjectiles(
           repeatedCount.value++;
           playEffect("hit");
 
-          if (Math.random() < 0.1) {
+          if (Math.random() < 0.2) {
             t.makeRock();
           } else {
             targets.splice(i, 1);
